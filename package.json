@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-tagui",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "\"# node-red-contrib-tagui\"",
   "main": "dist/tagui.js",
   "dependencies": {
@@ -20,7 +20,8 @@
   "keywords": [
     "node-red",
     "tagui",
-    "tag-ui"
+    "tag-ui",
+    "RPA"
   ],
   "author": "",
   "license": "MPL-2.0",
