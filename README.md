@@ -11,7 +11,7 @@ The top output node is used to continue the flow, once TagUI is done processing.
 The second output node will receive all output from TagUI live. Use full for debugging
 The last output node will trigger incase TagUI returns a non zero exit code, ie an error happend
 
-![example](C:\openiap\node-red-contrib-tagui\example.png)
+![example](example.png)
 
 requires [node-red-contrib-image-output](https://flows.nodered.org/node/node-red-contrib-image-output) for image result
 
