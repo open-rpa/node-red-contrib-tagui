@@ -26,7 +26,7 @@ module.exports = function (RED) {
                 const param = msg.param || this.config.param;
                 const quiet = msg.quiet || this.config.quiet;
                 const script = msg.script || this.config.script;
-                const { spawn } = require('child_process');
+                const { spawn, execSync } = require('child_process');
                 const fs = require('fs');
                 const path = require('path');
                 const os = require('os');
@@ -47,7 +47,9 @@ module.exports = function (RED) {
                 };
                 const homedir = os.homedir();
                 const taguidir = path.resolve(homedir, 'tagui');
+                const tagerina = (process.platform == 'win32' ? path.resolve(homedir, 'tagui/src/erina.cmd') : path.resolve(homedir, 'tagui/src/erina'));
                 const taguiexe = (process.platform == 'win32' ? path.resolve(homedir, 'tagui/src/tagui.cmd') : path.resolve(homedir, 'tagui/src/tagui'));
+                const taguiendexe = (process.platform == 'win32' ? path.resolve(homedir, 'tagui/src/end_processes.cmd') : path.resolve(homedir, 'tagui/src/end_processes'));
                 if (!fs.existsSync(taguidir) || !fs.existsSync(taguiexe)) {
                     let filename = path.resolve(homedir, 'TagUI_Windows.zip');
                     let url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.14.0/TagUI_Windows.zip";
@@ -68,6 +70,11 @@ module.exports = function (RED) {
                     this.node.warn('Extracting TagUI');
                     await anzip(filename, { outputPath: homedir });
                     fs.unlinkSync(filename);
+                    if (process.platform != 'win32') {
+                        fs.chmodSync(taguiexe, '755');
+                        fs.chmodSync(taguiendexe, '755');
+                        fs.chmodSync(tagerina, '755');
+                    }
                 }
                 fs.writeFileSync("robot.tag", script);
                 let _arguments = ["robot.tag"];
@@ -92,8 +99,8 @@ module.exports = function (RED) {
                 };
                 if (param) {
                     if (Array.isArray(msg.payload)) {
-                        msg.payload.forEach(element => {
-                            return stringify(element);
+                        msg.payload.forEach((element, index) => {
+                            msg.payload[index] = stringify(element);
                         });
                         _arguments = _arguments.concat(msg.payload);
                     }
@@ -101,6 +108,7 @@ module.exports = function (RED) {
                         _arguments.push(stringify(msg.payload));
                     }
                 }
+                execSync(taguiendexe);
                 this.node.status({ fill: "blue", shape: "dot", text: "Spawn TagUI" });
                 const child = spawn(taguiexe, _arguments);
                 let output = [];
@@ -113,7 +121,17 @@ module.exports = function (RED) {
                     else {
                         msg.exitcode = code;
                         this.node.send([, , msg]);
-                        this.node.status({ fill: "red", shape: "dot", text: "failed" });
+                        if (output && output.length > 0 && output[0].startsWith("ERROR")) {
+                            this.node.status({ fill: "red", shape: "dot", text: output[0].substr(6, 32) });
+                        }
+                        else {
+                            this.node.status({ fill: "red", shape: "dot", text: "failed " + code });
+                        }
+                    }
+                    try {
+                        fs.unlinkSync("robot.tag");
+                    }
+                    catch (error) {
                     }
                 });
                 try {
