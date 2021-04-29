@@ -33,14 +33,15 @@
 type q as cute kitten[enter]
 wait 2 sec
 if present('//div[@data-ri="0"]')
-    snap //div[@data-ri="0"] to /tmp/kitten.png
+    snap //div[@data-ri="0"] to kitten.png
 else if present('//table//img')
-    snap //table//img to /tmp/kitten.png`, required: true
+    snap //table//img to kitten.png`, required: true
             },
 
         },
         inputs: 1,
         outputs: 3,
+        outputLabels: ["completed", "status", "failed"],
         icon: "tagui_logo.png",
         label: function () {
             return this.name || "tagui";

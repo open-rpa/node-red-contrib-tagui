@@ -85,7 +85,7 @@ export = function (RED: Red) {
                     msg.payload = output;
                     if (code == 0) {
                         this.node.send(msg);
-                        this.node.status({ fill: "red", shape: "dot", text: "succes" });
+                        this.node.status({ fill: "green", shape: "dot", text: "completed" });
                     } else {
                         msg.exitcode = code;
                         this.node.send([, , msg]);
