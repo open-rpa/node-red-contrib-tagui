@@ -8,17 +8,59 @@
         <div style="position: absolute; right:0; bottom:calc(100% + 3px);"><button id="node-function-expand-js-script" class="editor-button editor-button-small"><i class="fa fa-expand"></i></button></div>
         <div style="height: 100px; min-height:100px;" class="node-text-editor" id="node-input-script-editor" ></div>
     </div>
-    <div class="form-row">
-        <label><i class="fa fa-tag"></i> Headless</label>
-        <input type="checkbox" id="node-input-headless" style="width: auto;">
-    </div>
+    <table style="width: 100%">
+        <tr>
+            <td>
+                <div class="form-row">
+                    <label><i class="fa fa-eye-slash"></i> Headless</label>
+                    <input type="checkbox" id="node-input-headless" style="width: auto;">
+                </div>
+            </td>
+            <td>
+                <div class="form-row">
+                    <label><i class="fa fa-chrome"></i> No browser </label>
+                    <input type="checkbox" id="node-input-nobrowser" style="width: auto;">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="form-row">
+                    <label><i class="fa fa-shopping-bag"></i> Param </label>
+                    <input type="checkbox" id="node-input-param" style="width: auto;">
+                </div>
+            </td>
+            <td>
+                <div class="form-row">
+                    <label><i class="fa fa-commenting-o"></i> Quiet </label>
+                    <input type="checkbox" id="node-input-quiet" style="width: auto;">
+                </div>
+            </td>
+        </tr>
+    </table>
     <div class="form-row">
         <label ><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Node name">
     </div>
 </script>
 <script type="text/x-red" data-help-name="tagui tagui">
-    Execute RPA in human language using TagUI engine
+    <p>Execute RPA in human language using TagUI engine</p>
+    <p>Node has 3 output nodes.<br />
+        The top output node is used to continue the flow, once TagUI is done processing. msg.payload will contain all the output from the script<br />
+        The second output node will receive all output from TagUI live. Use full for debugging<br />
+        The last output node will trigger incase TagUI returns a non zero exit code, ie an error happend<br />
+    </p>
+    <p>
+        For simple workflow you can pass arguments using msg.payload and reference them from <a href="https://tagui.readthedocs.io/en/latest/reference.html?highlight=p1%20#input-s" target="_blank">TagUI as p1 to p8</a>.<br>
+        For more advanced cases simply inject the data in the script using msg.script<br>
+    </p>
+    <p>
+        You can override the script setting using msg.script<br />
+        You can override the headless setting using msg.headless<br />
+        You can override the nobrowser setting using msg.nobrowser<br />
+        You can override the param setting using msg.param<br />
+        You can override the quiet setting using msg.quiet<br />
+    </p>
 </script>
 <script type="text/javascript">
     RED.nodes.registerType('tagui tagui', {
@@ -27,6 +69,9 @@
         defaults: {
             name: { value: "" },
             headless: { value: false },
+            nobrowser: { value: false },
+            param: { value: true },
+            quiet: { value: true },
             script: {
                 value:
                     `https://www.google.dk/imghp?hl=en&ogbl

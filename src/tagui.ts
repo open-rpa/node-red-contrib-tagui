@@ -3,6 +3,9 @@ import { Red } from "node-red";
 export = function (RED: Red) {
     interface Itagui_tagui {
         headless: boolean;
+        nobrowser: boolean;
+        param: boolean;
+        quiet: boolean;
         name: string;
         script: string;
     }
@@ -19,7 +22,11 @@ export = function (RED: Red) {
             try {
                 this.node.status({});
                 const headless = msg.headless || this.config.headless;
+                const nobrowser = msg.nobrowser || this.config.nobrowser;
+                const param = msg.param || this.config.param;
+                const quiet = msg.quiet || this.config.quiet;
                 const script = msg.script || this.config.script;
+
                 const { spawn } = require('child_process');
                 const fs = require('fs');
                 const path = require('path');
@@ -65,22 +72,38 @@ export = function (RED: Red) {
                 }
                 fs.writeFileSync("robot.tag", script);
 
-                const _arguments = ["robot.tag"];
-                if (headless) _arguments.push("-headless")
+                let _arguments = ["robot.tag"];
+                if (quiet) {
+                    _arguments.push("-quiet")
+                }
+                if (headless) {
+                    _arguments.push("-headless")
+                } else if (nobrowser) {
+                    _arguments.push("-nobrowser")
+                }
+                const stringify = (element) => {
+                    var result: string = element
+                    if (element != null && typeof element !== 'string') {
+                        result = element.toString();
+                    }
+                    if (result.indexOf(' ') && !result.startsWith('"') && !result.endsWith('"')) {
+                        result = '"' + result + '"';
+                    }
+                    return result;
+                }
+                if (param) {
+                    if (Array.isArray(msg.payload)) {
+                        msg.payload.forEach(element => {
+                            return stringify(element);
+                        });
+                        _arguments = _arguments.concat(msg.payload);
+                    } else {
+                        _arguments.push(stringify(msg.payload));
+                    }
+                }
                 this.node.status({ fill: "blue", shape: "dot", text: "Spawn TagUI" });
                 const child = spawn(taguiexe, _arguments);
-                let output: string = "";
-                for await (const data of child.stdout) {
-                    let datastr: string = data.toString();
-                    output += datastr;
-                    if (datastr.endsWith('\n')) datastr = datastr.substr(0, datastr.length - 1);
-                    if (datastr.endsWith('\r')) datastr = datastr.substr(0, datastr.length - 1);
-                    if (datastr.trim() != "") {
-                        msg.payload = datastr;
-                        this.node.status({ fill: "blue", shape: "dot", text: datastr.substr(0, 32) });
-                        this.node.send([, msg]);
-                    }
-                };
+                let output: string[] = [];
                 child.on('exit', code => {
                     msg.payload = output;
                     if (code == 0) {
@@ -92,6 +115,18 @@ export = function (RED: Red) {
                         this.node.status({ fill: "red", shape: "dot", text: "failed" });
                     }
                 });
+                for await (const data of child.stdout) {
+                    let datastr: string = data.toString();
+                    if (datastr.endsWith('\n')) datastr = datastr.substr(0, datastr.length - 1);
+                    if (datastr.endsWith('\r')) datastr = datastr.substr(0, datastr.length - 1);
+                    if (datastr.trim() != "") {
+                        output.push(datastr);
+                        msg.payload = datastr;
+                        this.node.status({ fill: "blue", shape: "dot", text: datastr.substr(0, 32) });
+                        this.node.send([, msg]);
+                    }
+                };
+
             } catch (error) {
                 this.HandleError(this, error, msg);
             }
