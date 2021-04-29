@@ -1,0 +1,17 @@
+.github
+.vscode
+.npmrc
+.cache
+.openflowapicache
+src
+config
+docs
+node_modules
+logs
+package-lock.json
+tsconfig.json
+OpenFlow
+OpenFlowNodeRED
+temp
+data
+robot.tag

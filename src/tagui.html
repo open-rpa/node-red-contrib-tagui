@@ -1,0 +1,111 @@
+<script type="text/x-red" data-template-name="tagui tagui">
+    <div class="form-row" style="margin-bottom: 0px;">
+        <label for="node-input-script"><i class="fa fa-wrench"></i> Script</label>
+        <input type="hidden" id="node-input-script" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr-script">
+    </div>
+    <div class="form-row node-text-editor-row" style="position:relative">
+        <div style="position: absolute; right:0; bottom:calc(100% + 3px);"><button id="node-function-expand-js-script" class="editor-button editor-button-small"><i class="fa fa-expand"></i></button></div>
+        <div style="height: 100px; min-height:100px;" class="node-text-editor" id="node-input-script-editor" ></div>
+    </div>
+    <div class="form-row">
+        <label><i class="fa fa-tag"></i> Headless</label>
+        <input type="checkbox" id="node-input-headless" style="width: auto;">
+    </div>
+    <div class="form-row">
+        <label ><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Node name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="tagui tagui">
+    Execute RPA in human language using TagUI engine
+</script>
+<script type="text/javascript">
+    RED.nodes.registerType('tagui tagui', {
+        category: 'tagui',
+        color: "#eeeeee",
+        defaults: {
+            name: { value: "" },
+            headless: { value: false },
+            script: {
+                value:
+                    `https://www.google.dk/imghp?hl=en&ogbl
+type q as cute kitten[enter]
+wait 2 sec
+if present('//div[@data-ri="0"]')
+    snap //div[@data-ri="0"] to /tmp/kitten.png
+else if present('//table//img')
+    snap //table//img to /tmp/kitten.png`, required: true
+            },
+
+        },
+        inputs: 1,
+        outputs: 3,
+        icon: "tagui_logo.png",
+        label: function () {
+            return this.name || "tagui";
+        },
+        labelStyle: function () {
+            return this.name ? "node_label_italic" : "";
+        },
+        oneditprepare: function () {
+            this.scripteditor = RED.editor.createEditor({
+                id: 'node-input-script-editor',
+                mode: 'ace/mode/python',
+                value: $("#node-input-script").val(),
+                globals: {
+                    msg: false,
+                    context: false,
+                    RED: false,
+                    util: true,
+                    flow: false,
+                    global: false,
+                    console: false,
+                    Buffer: true,
+                    setTimeout: false,
+                    clearTimeout: false,
+                    setInterval: false,
+                    clearInterval: false
+                }
+            });
+            this.scripteditor.focus();
+
+            const that = this;
+            $("#node-function-expand-js-script").click(function (e) {
+                e.preventDefault();
+                const value = that.scripteditor.getValue();
+                RED.editor.editJavaScript({
+                    value: value,
+                    width: "Infinity",
+                    cursor: that.scripteditor.getCursorPosition(),
+                    mode: "ace/mode/python",
+                    complete: function (v, cursor) {
+                        that.scripteditor.setValue(v, -1);
+                        that.scripteditor.gotoLine(cursor.row + 1, cursor.column, false);
+                        setTimeout(function () {
+                            that.scripteditor.focus();
+                        }, 300);
+                    }
+                })
+            });
+
+        },
+        oneditsave: function () {
+            let annot = this.scripteditor.getSession().getAnnotations();
+            $("#node-input-noerr-script").val(0);
+            for (let k = 0; k < annot.length; k++) {
+                if (annot[k].type === "error") {
+                    $("#node-input-noerr-script").val(annot.length);
+                    this.noerr = annot.length;
+                }
+            }
+            $("#node-input-script").val(this.scripteditor.getValue());
+            this.scripteditor.destroy();
+            delete this.scripteditor;
+        },
+        oneditcancel: function () {
+            this.scripteditor.destroy();
+            delete this.scripteditor;
+        }
+    });
+</script>

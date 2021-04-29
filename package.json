@@ -1,0 +1,32 @@
+{
+  "name": "node-red-contrib-tagui",
+  "version": "1.0.4",
+  "description": "\"# node-red-contrib-tagui\"",
+  "main": "dist/tagui.js",
+  "dependencies": {
+    "@types/node": "^13.9.1",
+    "@types/node-red": "^0.20.1",
+    "anzip": "^0.2.0",
+    "follow-redirects": "^1.14.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "debug": "node-red --userDir ./data"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-rpa/node-red-contrib-tagui.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/open-rpa/node-red-contrib-tagui/issues"
+  },
+  "homepage": "https://github.com/open-rpa/node-red-contrib-tagui#readme",
+  "node-red": {
+    "nodes": {
+      "tagui tagui": "dist/tagui.js"
+    }
+  }
+}
