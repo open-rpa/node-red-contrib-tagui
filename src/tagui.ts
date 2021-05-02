@@ -127,10 +127,10 @@ export = function (RED: Red) {
                             this.node.status({ fill: "red", shape: "dot", text: "failed " + code });
                         }
                     }
-                    try {
-                        fs.unlinkSync("robot.tag");
-                    } catch (error) {
-                    }
+                    // try {
+                    //     fs.unlinkSync("robot.tag");
+                    // } catch (error) {
+                    // }
                 });
                 for await (const data of child.stdout) {
                     let datastr: string = data.toString();
