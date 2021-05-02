@@ -128,11 +128,10 @@ module.exports = function (RED) {
                             this.node.status({ fill: "red", shape: "dot", text: "failed " + code });
                         }
                     }
-                    try {
-                        fs.unlinkSync("robot.tag");
-                    }
-                    catch (error) {
-                    }
+                    // try {
+                    //     fs.unlinkSync("robot.tag");
+                    // } catch (error) {
+                    // }
                 });
                 try {
                     for (var _b = __asyncValues(child.stdout), _c; _c = await _b.next(), !_c.done;) {
