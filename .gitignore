@@ -1,7 +1,5 @@
 package-lock.json
 node_modules
 logs
-config
 data
-robot.tag
-kitten
+config

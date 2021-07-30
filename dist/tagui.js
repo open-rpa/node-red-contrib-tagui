@@ -57,7 +57,7 @@ module.exports = function (RED) {
                         filename = path.resolve(homedir, 'TagUI_macOS.zip');
                         url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.14.0/TagUI_macOS.zip";
                     }
-                    else {
+                    else if (process.platform != 'win32') {
                         filename = path.resolve(homedir, 'TagUI_Linux.zip');
                         url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.14.0/TagUI_Linux.zip";
                     }
