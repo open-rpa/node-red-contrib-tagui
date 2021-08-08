@@ -8,6 +8,7 @@ export = function (RED: Red) {
         quiet: boolean;
         name: string;
         script: string;
+        updatecheck: boolean;
     }
     class tagui_tagui {
         public node: any = null;
@@ -26,8 +27,10 @@ export = function (RED: Red) {
                 const param = msg.param || this.config.param;
                 const quiet = msg.quiet || this.config.quiet;
                 const script = msg.script || this.config.script;
+                const updatecheck = msg.updatecheck || this.config.updatecheck;
 
-                const { spawn, execSync } = require('child_process');
+
+                const { spawn, execSync, spawnSync } = require('child_process');
                 const fs = require('fs');
                 const path = require('path');
                 const os = require('os');
@@ -54,13 +57,13 @@ export = function (RED: Red) {
                 const taguiendexe = (process.platform == 'win32' ? path.resolve(homedir, 'tagui/src/end_processes.cmd') : path.resolve(homedir, 'tagui/src/end_processes'));
                 if (!fs.existsSync(taguidir) || !fs.existsSync(taguiexe)) {
                     let filename = path.resolve(homedir, 'TagUI_Windows.zip');
-                    let url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.14.0/TagUI_Windows.zip";
+                    let url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.46.0/TagUI_Windows.zip";
                     if (process.platform == 'darwin') {
                         filename = path.resolve(homedir, 'TagUI_macOS.zip');
-                        url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.14.0/TagUI_macOS.zip";
+                        url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.46.0/TagUI_macOS.zip";
                     } else if (process.platform != 'win32') {
                         filename = path.resolve(homedir, 'TagUI_Linux.zip');
-                        url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.14.0/TagUI_Linux.zip";
+                        url = "https://github.com/kelaberetiv/TagUI/releases/download/v6.46.0/TagUI_Linux.zip";
                     }
                     if (!fs.existsSync(filename)) {
                         this.node.status({ fill: "blue", shape: "dot", text: "Download TagUI" });
@@ -108,6 +111,10 @@ export = function (RED: Red) {
                         _arguments.push(stringify(msg.payload));
                     }
                 }
+                if (updatecheck) {
+                    execSync(taguiendexe);
+                    spawnSync(taguiexe, ["update"]);
+                }
                 execSync(taguiendexe);
 
                 this.node.status({ fill: "blue", shape: "dot", text: "Spawn TagUI" });
@@ -146,6 +153,16 @@ export = function (RED: Red) {
 
             } catch (error) {
                 this.HandleError(this, error, msg);
+                var stdout = "";
+                if (error.stdout) {
+                    stdout = error.stdout.toString();
+                    this.node.warn(`TagUI: ${stdout}`);
+                }
+                var stderr = "";
+                if (error.stderr) {
+                    stderr = error.stderr.toString();
+                    this.node.warn(`TagUI: ${stderr}`);
+                }
             }
         }
         public HandleError(node: any, error: any, msg: any): void {
