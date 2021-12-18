@@ -1,6 +1,9 @@
-import { Red } from "node-red";
+// import { Red } from "node-red";
+
+import nodeRed = require("node-red");
+
 // import { anzip } from 'anzip';
-export = function (RED: Red) {
+export = function (RED: nodeRed.NodeRedApp) {
     interface Itagui_tagui {
         headless: boolean;
         nobrowser: boolean;
@@ -188,5 +191,5 @@ export = function (RED: Red) {
         }
 
     }
-    RED.nodes.registerType("tagui tagui", (tagui_tagui as any));
+    (RED.nodes as any).registerType("tagui tagui", (tagui_tagui as any));
 }

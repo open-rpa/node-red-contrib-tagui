@@ -1,13 +1,13 @@
 {
   "name": "node-red-contrib-tagui",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "\"# node-red-contrib-tagui\"",
   "main": "dist/tagui.js",
   "dependencies": {
-    "@types/node": "^13.9.1",
-    "@types/node-red": "^0.20.1",
+    "@types/node": "^17.0.0",
+    "@types/node-red": "^1.2.0",
     "anzip": "^0.2.0",
-    "follow-redirects": "^1.14.0"
+    "follow-redirects": "^1.14.6"
   },
   "devDependencies": {},
   "scripts": {
@@ -31,8 +31,12 @@
   },
   "homepage": "https://github.com/open-rpa/node-red-contrib-tagui#readme",
   "node-red": {
+    "version": ">=0.18.7",
     "nodes": {
       "tagui tagui": "dist/tagui.js"
     }
+  },
+  "engines": {
+    "node": ">=0.8.0"
   }
 }
