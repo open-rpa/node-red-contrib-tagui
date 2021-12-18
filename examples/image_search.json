@@ -1,0 +1,163 @@
+[
+    {
+        "id": "f3af1605.ec32f8",
+        "type": "inject",
+        "z": "d241027e27d4c302",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "kitten",
+        "payloadType": "str",
+        "x": 230,
+        "y": 120,
+        "wires": [
+            [
+                "7dd22cb.07c64d4"
+            ]
+        ]
+    },
+    {
+        "id": "db71650e.26fae8",
+        "type": "image",
+        "z": "d241027e27d4c302",
+        "name": "",
+        "width": "160",
+        "data": "payload",
+        "dataType": "msg",
+        "thumbnail": false,
+        "active": true,
+        "pass": false,
+        "outputs": 0,
+        "x": 800,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "b70aac26.17577",
+        "type": "file in",
+        "z": "d241027e27d4c302",
+        "name": "",
+        "filename": "data/kitten.png",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 600,
+        "y": 120,
+        "wires": [
+            [
+                "db71650e.26fae8"
+            ]
+        ]
+    },
+    {
+        "id": "8f0c45bc.efe9e8",
+        "type": "inject",
+        "z": "d241027e27d4c302",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "puppies",
+        "payloadType": "str",
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "7dd22cb.07c64d4"
+            ]
+        ]
+    },
+    {
+        "id": "da8f73d9.56c67",
+        "type": "comment",
+        "z": "d241027e27d4c302",
+        "name": "TagUI version",
+        "info": "requires chrome to be preinstalled.",
+        "x": 210,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "7dd22cb.07c64d4",
+        "type": "tagui tagui",
+        "z": "d241027e27d4c302",
+        "name": "",
+        "headless": true,
+        "nobrowser": false,
+        "param": true,
+        "quiet": true,
+        "updatecheck": true,
+        "script": "https://www.google.dk/imghp?hl=en&ogbl\nif present('//button[.=\"I agree\"]')\n    click //button[.=\"I agree\"]\ntype q as `p1`[enter]\nwait 2 sec\nif present('//div[@data-ri=\"0\"]')\n    snap //div[@data-ri=\"0\"] to data/kitten.png\nelse if present('//table//img')\n    snap //table//img to data/kitten.png\nelse\n    snap page to data/kitten.png",
+        "x": 390,
+        "y": 140,
+        "wires": [
+            [
+                "b70aac26.17577"
+            ],
+            [
+                "06471aaa3953cdd3"
+            ],
+            [
+                "3519761bb38fbf79"
+            ]
+        ]
+    },
+    {
+        "id": "06471aaa3953cdd3",
+        "type": "debug",
+        "z": "d241027e27d4c302",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "3519761bb38fbf79",
+        "type": "debug",
+        "z": "d241027e27d4c302",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 220,
+        "wires": []
+    }
+]
