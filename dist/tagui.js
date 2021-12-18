@@ -94,7 +94,7 @@ module.exports = function (RED) {
                         result = element.toString();
                     }
                     if (result.indexOf(' ') && !result.startsWith('"') && !result.endsWith('"')) {
-                        result = '"' + result + '"';
+                        // result = '"' + result + '"';
                     }
                     return result;
                 };
