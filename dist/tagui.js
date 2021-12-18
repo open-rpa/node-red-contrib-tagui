@@ -99,6 +99,9 @@ module.exports = function (RED) {
                     return result;
                 };
                 if (param) {
+                    if (msg.payload.indexOf(' ') > -1) {
+                        msg.payload = msg.payload.split(' ');
+                    }
                     if (Array.isArray(msg.payload)) {
                         msg.payload.forEach((element, index) => {
                             msg.payload[index] = stringify(element);
@@ -117,7 +120,10 @@ module.exports = function (RED) {
                 this.node.status({ fill: "blue", shape: "dot", text: "Spawn TagUI" });
                 const child = spawn(taguiexe, _arguments);
                 let output = [];
+                // child.stdout.pipe(process.stdout);
                 child.on('exit', code => {
+                    msg.command = taguiexe;
+                    msg.arguments = _arguments;
                     msg.payload = output;
                     if (code == 0) {
                         this.node.send(msg);
@@ -133,10 +139,6 @@ module.exports = function (RED) {
                             this.node.status({ fill: "red", shape: "dot", text: "failed " + code });
                         }
                     }
-                    // try {
-                    //     fs.unlinkSync("robot.tag");
-                    // } catch (error) {
-                    // }
                 });
                 try {
                     for (var _b = __asyncValues(child.stdout), _c; _c = await _b.next(), !_c.done;) {
