@@ -45,6 +45,7 @@ module.exports = function (RED) {
                 if (!this.hasphp) {
                     msg.error = new Error("PHP not found");
                     this.node.send([, , msg]);
+                    return;
                 }
                 this.node.status({ fill: "blue", shape: "dot", text: "initializing" });
                 await this.sleep(10);
