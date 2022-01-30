@@ -158,12 +158,18 @@ module.exports = function (RED) {
                     msg.payload = output;
                     var lasterror = "";
                     for (let i = 0; i < output.length; i++) {
-                        if (output[i].startsWith("ERROR"))
+                        if (!output[i])
+                            continue;
+                        // in case of special charecter we don't use startsWith
+                        if (output[i].indexOf("ERROR") > -1 && output[i].indexOf("ERROR") < 5) {
                             lasterror = output[i].substr(6, 32);
+                            if (!msg.error || !Array.isArray(msg.error))
+                                msg.error = [];
+                            msg.error.push(output[i]);
+                        }
                     }
-                    if (code !== 0)
-                        if (lasterror = "")
-                            lasterror = "failed " + code;
+                    if (code !== 0 && lasterror == "")
+                        lasterror = "failed " + code;
                     if (lasterror == "") {
                         this.node.send(msg);
                         this.node.status({ fill: "green", shape: "dot", text: "completed" });
@@ -208,10 +214,14 @@ module.exports = function (RED) {
                         if (datastr.endsWith('\r'))
                             datastr = datastr.substr(0, datastr.length - 1);
                         if (datastr.trim() != "") {
-                            output.push(datastr);
                             msg.payload = datastr;
                             this.node.status({ fill: "blue", shape: "dot", text: datastr.substr(0, 32) });
                             this.node.send([, msg]);
+                            // prefix with error so we can catch it in the exit event too.
+                            if (datastr.startsWith("ERROR"))
+                                output.push(datastr);
+                            if (!datastr.startsWith("ERROR"))
+                                output.push("ERROR " + datastr);
                         }
                     }
                 }
