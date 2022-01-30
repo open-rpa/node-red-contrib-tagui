@@ -16,15 +16,40 @@ export = function (RED: nodeRed.NodeRedApp) {
     class tagui_tagui {
         public node: any = null;
         public name: string = "";
+        public hasphp: boolean = false;
         constructor(public config: Itagui_tagui) {
             (RED as any).nodes.createNode(this, config);
             this.node = this;
             this.node.status({});
             this.node.on("input", this.oninput);
+
+            this.init();
+        }
+        async init() {
+            this.node.status({ fill: "blue", shape: "dot", text: "Checking prerequests" });
+            if (process.platform != 'win32') {
+                const { execSync } = require('child_process');
+                try {
+                    const phpOutput = await execSync("php -v");
+                    const php = phpOutput.toString() ? phpOutput.toString() : "";
+                    if (php.indexOf("rror") === -1) this.hasphp = true;
+                } catch (error) {
+                    this.node.status({ fill: "red", shape: "dot", text: "php is missing" });
+                }
+            }
+            this.node.status({});
+        }
+        sleep(ms) {
+            return new Promise(resolve => { setTimeout(resolve, ms) })
         }
         async oninput(msg: any) {
             try {
-                this.node.status({});
+                if (!this.hasphp) {
+                    msg.error = new Error("PHP not found");
+                    this.node.send([, , msg]);
+                }
+                this.node.status({ fill: "blue", shape: "dot", text: "initializing" });
+                await this.sleep(10);
                 const headless = msg.headless || this.config.headless;
                 const nobrowser = msg.nobrowser || this.config.nobrowser;
                 const param = msg.param || this.config.param;
@@ -118,10 +143,14 @@ export = function (RED: nodeRed.NodeRedApp) {
                     }
                 }
                 if (updatecheck) {
-                    execSync(taguiendexe);
-                    spawnSync(taguiexe, ["update"]);
+                    this.node.status({ fill: "blue", shape: "dot", text: "Running update check" });
+                    await this.sleep(10);
+                    await execSync(taguiendexe);
+                    await spawnSync(taguiexe, ["update"]);
                 }
-                execSync(taguiendexe);
+                this.node.status({ fill: "blue", shape: "dot", text: "Cleanup" });
+                await this.sleep(10);
+                await execSync(taguiendexe);
 
                 this.node.status({ fill: "blue", shape: "dot", text: "Spawn TagUI" });
                 const child = spawn(taguiexe, _arguments);
@@ -132,20 +161,33 @@ export = function (RED: nodeRed.NodeRedApp) {
                     msg.command = taguiexe;
                     msg.arguments = _arguments;
                     msg.payload = output;
-                    if (code == 0) {
+                    var lasterror = "";
+                    for (let i = 0; i < output.length; i++) {
+                        if (output[i].startsWith("ERROR")) lasterror = output[i].substr(6, 32);
+                    }
+                    if (code !== 0) if (lasterror = "") lasterror = "failed " + code;
+                    if (lasterror == "") {
                         this.node.send(msg);
                         this.node.status({ fill: "green", shape: "dot", text: "completed" });
                     } else {
                         msg.exitcode = code;
                         this.node.send([, , msg]);
-                        if (output && output.length > 0 && output[0].startsWith("ERROR")) {
-                            this.node.status({ fill: "red", shape: "dot", text: output[0].substr(6, 32) });
-                        } else {
-                            this.node.status({ fill: "red", shape: "dot", text: "failed " + code });
-                        }
+                        this.node.status({ fill: "red", shape: "dot", text: lasterror });
                     }
+                    console.log(output);
                 });
                 for await (const data of child.stdout) {
+                    let datastr: string = data.toString();
+                    if (datastr.endsWith('\n')) datastr = datastr.substr(0, datastr.length - 1);
+                    if (datastr.endsWith('\r')) datastr = datastr.substr(0, datastr.length - 1);
+                    if (datastr.trim() != "") {
+                        output.push(datastr);
+                        msg.payload = datastr;
+                        this.node.status({ fill: "blue", shape: "dot", text: datastr.substr(0, 32) });
+                        this.node.send([, msg]);
+                    }
+                };
+                for await (const data of child.stderr) {
                     let datastr: string = data.toString();
                     if (datastr.endsWith('\n')) datastr = datastr.substr(0, datastr.length - 1);
                     if (datastr.endsWith('\r')) datastr = datastr.substr(0, datastr.length - 1);

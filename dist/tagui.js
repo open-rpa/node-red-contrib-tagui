@@ -13,15 +13,41 @@ module.exports = function (RED) {
             this.config = config;
             this.node = null;
             this.name = "";
+            this.hasphp = false;
             RED.nodes.createNode(this, config);
             this.node = this;
             this.node.status({});
             this.node.on("input", this.oninput);
+            this.init();
+        }
+        async init() {
+            this.node.status({ fill: "blue", shape: "dot", text: "Checking prerequests" });
+            if (process.platform != 'win32') {
+                const { execSync } = require('child_process');
+                try {
+                    const phpOutput = await execSync("php -v");
+                    const php = phpOutput.toString() ? phpOutput.toString() : "";
+                    if (php.indexOf("rror") === -1)
+                        this.hasphp = true;
+                }
+                catch (error) {
+                    this.node.status({ fill: "red", shape: "dot", text: "php is missing" });
+                }
+            }
+            this.node.status({});
+        }
+        sleep(ms) {
+            return new Promise(resolve => { setTimeout(resolve, ms); });
         }
         async oninput(msg) {
-            var e_1, _a;
+            var e_1, _a, e_2, _b;
             try {
-                this.node.status({});
+                if (!this.hasphp) {
+                    msg.error = new Error("PHP not found");
+                    this.node.send([, , msg]);
+                }
+                this.node.status({ fill: "blue", shape: "dot", text: "initializing" });
+                await this.sleep(10);
                 const headless = msg.headless || this.config.headless;
                 const nobrowser = msg.nobrowser || this.config.nobrowser;
                 const param = msg.param || this.config.param;
@@ -114,10 +140,14 @@ module.exports = function (RED) {
                     }
                 }
                 if (updatecheck) {
-                    execSync(taguiendexe);
-                    spawnSync(taguiexe, ["update"]);
+                    this.node.status({ fill: "blue", shape: "dot", text: "Running update check" });
+                    await this.sleep(10);
+                    await execSync(taguiendexe);
+                    await spawnSync(taguiexe, ["update"]);
                 }
-                execSync(taguiendexe);
+                this.node.status({ fill: "blue", shape: "dot", text: "Cleanup" });
+                await this.sleep(10);
+                await execSync(taguiendexe);
                 this.node.status({ fill: "blue", shape: "dot", text: "Spawn TagUI" });
                 const child = spawn(taguiexe, _arguments);
                 let output = [];
@@ -126,24 +156,28 @@ module.exports = function (RED) {
                     msg.command = taguiexe;
                     msg.arguments = _arguments;
                     msg.payload = output;
-                    if (code == 0) {
+                    var lasterror = "";
+                    for (let i = 0; i < output.length; i++) {
+                        if (output[i].startsWith("ERROR"))
+                            lasterror = output[i].substr(6, 32);
+                    }
+                    if (code !== 0)
+                        if (lasterror = "")
+                            lasterror = "failed " + code;
+                    if (lasterror == "") {
                         this.node.send(msg);
                         this.node.status({ fill: "green", shape: "dot", text: "completed" });
                     }
                     else {
                         msg.exitcode = code;
                         this.node.send([, , msg]);
-                        if (output && output.length > 0 && output[0].startsWith("ERROR")) {
-                            this.node.status({ fill: "red", shape: "dot", text: output[0].substr(6, 32) });
-                        }
-                        else {
-                            this.node.status({ fill: "red", shape: "dot", text: "failed " + code });
-                        }
+                        this.node.status({ fill: "red", shape: "dot", text: lasterror });
                     }
+                    console.log(output);
                 });
                 try {
-                    for (var _b = __asyncValues(child.stdout), _c; _c = await _b.next(), !_c.done;) {
-                        const data = _c.value;
+                    for (var _c = __asyncValues(child.stdout), _d; _d = await _c.next(), !_d.done;) {
+                        const data = _d.value;
                         let datastr = data.toString();
                         if (datastr.endsWith('\n'))
                             datastr = datastr.substr(0, datastr.length - 1);
@@ -160,9 +194,33 @@ module.exports = function (RED) {
                 catch (e_1_1) { e_1 = { error: e_1_1 }; }
                 finally {
                     try {
-                        if (_c && !_c.done && (_a = _b.return)) await _a.call(_b);
+                        if (_d && !_d.done && (_a = _c.return)) await _a.call(_c);
                     }
                     finally { if (e_1) throw e_1.error; }
+                }
+                ;
+                try {
+                    for (var _e = __asyncValues(child.stderr), _f; _f = await _e.next(), !_f.done;) {
+                        const data = _f.value;
+                        let datastr = data.toString();
+                        if (datastr.endsWith('\n'))
+                            datastr = datastr.substr(0, datastr.length - 1);
+                        if (datastr.endsWith('\r'))
+                            datastr = datastr.substr(0, datastr.length - 1);
+                        if (datastr.trim() != "") {
+                            output.push(datastr);
+                            msg.payload = datastr;
+                            this.node.status({ fill: "blue", shape: "dot", text: datastr.substr(0, 32) });
+                            this.node.send([, msg]);
+                        }
+                    }
+                }
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (_f && !_f.done && (_b = _e.return)) await _b.call(_e);
+                    }
+                    finally { if (e_2) throw e_2.error; }
                 }
                 ;
             }
