@@ -47,6 +47,7 @@ export = function (RED: nodeRed.NodeRedApp) {
                 if (!this.hasphp) {
                     msg.error = new Error("PHP not found");
                     this.node.send([, , msg]);
+                    this.node.status({ fill: "red", shape: "dot", text: "php is missing" });
                     return;
                 }
                 this.node.status({ fill: "blue", shape: "dot", text: "initializing" });
