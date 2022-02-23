@@ -36,6 +36,8 @@ export = function (RED: nodeRed.NodeRedApp) {
                 } catch (error) {
                     this.node.status({ fill: "red", shape: "dot", text: "php is missing" });
                 }
+            } else {
+                this.hasphp = true;
             }
             this.node.status({});
         }

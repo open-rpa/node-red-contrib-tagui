@@ -34,6 +34,9 @@ module.exports = function (RED) {
                     this.node.status({ fill: "red", shape: "dot", text: "php is missing" });
                 }
             }
+            else {
+                this.hasphp = true;
+            }
             this.node.status({});
         }
         sleep(ms) {
